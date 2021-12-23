@@ -20,3 +20,27 @@ class Track:
     def __str__(self) -> str:
         return f'{self.artists} - {self.album} - {self.name}'
 
+    def csv(self, sep: str) -> str:
+        return f'{self.artists}{sep}{self.album}{sep}{self.name}'
+
+
+class Album:
+    def __init__(self, _name: str, _artists: list[str]):
+        self.name = _name
+        self.artists = _artists
+
+    @staticmethod
+    def make_album(info: Dict[Any, Any]) -> 'Album':
+        album_name = info['album']['name']
+        artists = info['album']['artists']
+        album_artists = []
+        for artist in artists:
+            album_artists.append(artist['name'])
+        return Album(album_name, album_artists)
+
+    def __str__(self) -> str:
+        return f'{self.artists} - {self.name}'
+
+    def csv(self, sep: str) -> str:
+        return f'{self.artists}{sep}{self.name}'
+
