@@ -3,10 +3,17 @@
 
 from abc import ABC, abstractmethod
 import json
-from sys import stdin
+from sys import stdin, stderr
 
-from spotipy import Spotify
+from spotipy import (
+    Spotify,
+    SpotifyClientCredentials,
+    SpotifyOAuth,
+)
+
 from objects import Track, Album
+
+scope = "user-library-modify user-read-private"
 
 
 class Reader(ABC):

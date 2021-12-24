@@ -6,9 +6,11 @@ import sys
 from sys import stdout, stderr
 import json
 
-from spotipy import Spotify
+from spotipy import Spotify, SpotifyClientCredentials, SpotifyOAuth
 
 from objects import Album, Track
+
+scope = "user-library-modify user-read-private"
 
 
 class Writer(ABC):
@@ -36,8 +38,12 @@ class Writer(ABC):
 
     def write_objects(self, obj_type: str, objects: list[Track] | list[Album]) -> None:
         if obj_type == "tracks":
+            if not isinstance(objects, list[Track]):
+                raise TypeError
             self.add_saved_tracks(objects)
         elif obj_type == "albums":
+            if not isinstance(objects, list[Album]):
+                raise TypeError
             self.add_saved_albums(objects)
         else:
             raise NotImplemented
