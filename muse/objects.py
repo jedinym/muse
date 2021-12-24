@@ -24,13 +24,6 @@ class Track:
     def csv(self, sep: str) -> str:
         return f"{self.artists}{sep}{self.album}{sep}{self.name}"
 
-    def dictify(self) -> Dict[str, str | list[str]]:
-        track: Dict[str, str | list[str]] = dict()
-        track["name"] = self.name
-        track["album"] = self.album
-        track["artists"] = self.artists
-        return track
-
 
 class Album:
     def __init__(self, _name: str, _artists: list[str]):
@@ -52,8 +45,3 @@ class Album:
     def csv(self, sep: str) -> str:
         return f"{self.artists}{sep}{self.name}"
 
-    def dictify(self) -> Dict[str, str | list[str]]:
-        album: Dict[str, str | list[str]] = dict()
-        album["name"] = self.name
-        album["artists"] = self.artists
-        return album

@@ -28,6 +28,7 @@ if __name__ == "__main__":
     args = argparser.parse_args()
 
     reader: Reader = Reader.get_reader(args.src)
+
     objects = reader.read_objects(args.type)
     writer: Writer = Writer.get_writer(args.dest)
     writer.write_objects(args.type, objects)

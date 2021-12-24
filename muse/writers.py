@@ -25,11 +25,7 @@ class Writer(ABC):
     @staticmethod
     def get_writer(dest: str) -> "Writer":
         if dest == "spotify":
-            sptf = spotipy.Spotify(
-                auth_manager=SpotifyOAuth(scope=scope),
-                client_credentials_manager=SpotifyClientCredentials(),
-            )
-            return SpotifyWriter(sptf)
+            return SpotifyWriter()
         elif dest == "stdout":
             return FileWriter(stdout)
 
@@ -38,20 +34,27 @@ class Writer(ABC):
 
     def write_objects(self, obj_type: str, objects: list[Track] | list[Album]) -> None:
         if obj_type == "tracks":
-            if not isinstance(objects, list[Track]):
-                raise TypeError
             self.add_saved_tracks(objects)
         elif obj_type == "albums":
-            if not isinstance(objects, list[Album]):
-                raise TypeError
             self.add_saved_albums(objects)
         else:
             raise NotImplemented
 
 
 class SpotifyWriter(Writer):
-    def __init__(self, _sptf: Spotify):
-        self.sptf = _sptf
+    def __init__(self, client_id=None, client_src=None):
+        if not client_id:
+            client_id = os.environ.get("SPOTIPY_CLIENT_ID_WRITE")
+        if not client_secret:
+            client_secret = os.environ.get("SPOTIPY_CLIENT_SECRET_WRITE")
+        if not (client_id and client_secret):
+            # TODO: make an exception here
+            exit(70)
+
+        self.sptf = Spotify(
+            auth_manager=SpotifyOAuth(scope=scope),
+        )
+
 
     def get_track_id(self, track: Track) -> Optional[str]:
         results = self.sptf.search(
@@ -97,11 +100,11 @@ class FileWriter(Writer):
         self.file = _file
 
     def add_saved_tracks(self, tracks: list[Track]) -> None:
-        dictified = map(lambda x: x.dictify(), tracks)
+        dictified = map(lambda x: x.__dict__, tracks)
         track_dict = {"tracks": list(dictified)}
         self.file.write(json.dumps(track_dict, indent=4))
 
     def add_saved_albums(self, albums: list[Album]) -> None:
-        dictified = map(lambda x: x.dictify(), albums)
+        dictified = map(lambda x: x.__dict__, albums)
         album_dict = {"albums": list(dictified)}
         self.file.write(json.dumps(album_dict, indent=4))

@@ -3,6 +3,7 @@
 
 from abc import ABC, abstractmethod
 import json
+import os
 from sys import stdin, stderr
 
 from spotipy import (
@@ -13,7 +14,7 @@ from spotipy import (
 
 from objects import Track, Album
 
-scope = "user-library-modify user-read-private"
+scope = "user-library-read"
 
 
 class Reader(ABC):
@@ -28,11 +29,7 @@ class Reader(ABC):
     @staticmethod
     def get_reader(src: str) -> "Reader":
         if src == "spotify":
-            sptf = spotipy.Spotify(
-                auth_manager=SpotifyOAuth(scope=scope),
-                client_credentials_manager=SpotifyClientCredentials(),
-            )
-            return SpotifyReader(sptf)
+            return SpotifyReader()
         elif src == "stdin":
             return FileReader(stdin)
 
@@ -50,8 +47,18 @@ class Reader(ABC):
 
 
 class SpotifyReader(Reader):
-    def __init__(self, _sptf: Spotify):
-        self.sptf = _sptf
+    def __init__(self, client_id=None, client_secret=None):
+        if not client_id:
+            client_id = os.environ.get("SPOTIPY_CLIENT_ID_READ")
+        if not client_secret:
+            client_secret = os.environ.get("SPOTIPY_CLIENT_SECRET_READ")
+        if not (client_id and client_secret):
+            # TODO: make an exception here
+            exit(69)
+
+        self.sptf = Spotify(
+            auth_manager=SpotifyOAuth(scope=scope, client_id=client_id, client_secret=client_secret),
+        )
 
     def get_saved_tracks(self) -> list[Track]:
         results = self.sptf.current_user_saved_tracks()
