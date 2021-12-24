@@ -23,7 +23,7 @@ def init_parser() -> ArgumentParser:
     return parser
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     argparser = init_parser()
     args = argparser.parse_args()
 
@@ -33,4 +33,3 @@ if __name__ == "__main__":
     writer.write_objects(args.type, objects)
 
     exit(0)
-
