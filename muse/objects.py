@@ -44,4 +44,3 @@ class Album:
 
     def csv(self, sep: str) -> str:
         return f"{self.artists}{sep}{self.name}"
-

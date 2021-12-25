@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from typing import Optional
+
 from abc import ABC, abstractmethod
+from collections import deque
 import sys
 from sys import stdout, stderr
+import os
 import json
 
 from spotipy import Spotify, SpotifyClientCredentials, SpotifyOAuth
@@ -11,6 +14,16 @@ from spotipy import Spotify, SpotifyClientCredentials, SpotifyOAuth
 from objects import Album, Track
 
 scope = "user-library-modify user-read-private"
+
+
+def pop_n(stack, n):
+    while stack:
+        lst = []
+        for x in range(n):
+            if not stack:
+                break
+            lst.append(stack.popleft())
+        yield lst
 
 
 class Writer(ABC):
@@ -42,7 +55,7 @@ class Writer(ABC):
 
 
 class SpotifyWriter(Writer):
-    def __init__(self, client_id=None, client_src=None):
+    def __init__(self, client_id=None, client_secret=None):
         if not client_id:
             client_id = os.environ.get("SPOTIPY_CLIENT_ID_WRITE")
         if not client_secret:
@@ -52,9 +65,10 @@ class SpotifyWriter(Writer):
             exit(70)
 
         self.sptf = Spotify(
-            auth_manager=SpotifyOAuth(scope=scope),
+            auth_manager=SpotifyOAuth(
+                scope=scope, client_id=client_id, client_secret=client_secret
+            ),
         )
-
 
     def get_track_id(self, track: Track) -> Optional[str]:
         results = self.sptf.search(
@@ -75,24 +89,26 @@ class SpotifyWriter(Writer):
         return albums[0]["id"]
 
     def add_saved_tracks(self, tracks: list[Track]) -> None:
-        track_ids = []
+        track_ids = deque() 
         for track in tracks:
             id = self.get_track_id(track)
             if id is None:
                 print(f"Track {str(track)} not found!", file=sys.stderr)
             else:
-                track_ids.append(id)
-        self.sptf.current_user_saved_tracks_add(track_ids)
+                track_ids.appendleft(id)
+        for id_chunk in pop_n(track_ids, 30):
+            self.sptf.current_user_saved_tracks_add(id_chunk)
 
     def add_saved_albums(self, albums: list[Album]) -> None:
-        album_ids = []
+        album_ids = deque() 
         for album in albums:
             id = self.get_album_id(album)
             if id is None:
                 print(f"Album {str(album)} not found!", file=sys.stderr)
             else:
-                album_ids.append(id)
-        # self.sptf.current_user_saved_albums_add(album_ids)
+                album_ids.appendleft(id)
+        for id_chunk in pop_n(album_ids, 30):
+            self.sptf.current_user_saved_albums_add(id_chunk)
 
 
 class FileWriter(Writer):

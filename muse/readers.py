@@ -57,7 +57,9 @@ class SpotifyReader(Reader):
             exit(69)
 
         self.sptf = Spotify(
-            auth_manager=SpotifyOAuth(scope=scope, client_id=client_id, client_secret=client_secret),
+            auth_manager=SpotifyOAuth(
+                scope=scope, client_id=client_id, client_secret=client_secret
+            ),
         )
 
     def get_saved_tracks(self) -> list[Track]:
